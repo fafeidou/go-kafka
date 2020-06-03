@@ -4,15 +4,33 @@ import (
 	"bufio"
 	"fmt"
 	"github.com/Shopify/sarama"
+	"go-kafka/setting"
 	"log"
 	"os"
 	"os/signal"
+	"sync"
 )
 
 // kafka consumer
+func init() {
+	setting.Setup()
+}
+
+var wg *sync.WaitGroup
 
 func main() {
-	consumer, err := sarama.NewConsumer([]string{"106.14.227.31:9092"}, nil)
+	kafka := setting.App.Kafka
+	wg = &sync.WaitGroup{}
+	for serviceName, value := range kafka {
+		wg.Add(1)
+		go start_log(value.Brokers, value.Topic, serviceName)
+	}
+	wg.Wait()
+
+}
+
+func start_log(brokers []string, topic string, serviceName string) {
+	consumer, err := sarama.NewConsumer(brokers, nil)
 	if err != nil {
 		panic(err)
 	}
@@ -23,7 +41,7 @@ func main() {
 		}
 	}()
 
-	partitionConsumer, err := consumer.ConsumePartition("abklog_topic", 0, sarama.OffsetNewest)
+	partitionConsumer, err := consumer.ConsumePartition(topic, 0, sarama.OffsetNewest)
 	if err != nil {
 		panic(err)
 	}
@@ -43,7 +61,8 @@ ConsumerLoop:
 	for {
 		select {
 		case msg := <-partitionConsumer.Messages():
-			file, _ := os.OpenFile("./xx.txt", os.O_RDWR|os.O_CREATE|os.O_APPEND, 755)
+			os.Mkdir(serviceName, os.ModePerm)
+			file, _ := os.OpenFile(serviceName+"/"+serviceName+".log", os.O_RDWR|os.O_CREATE|os.O_APPEND, 755)
 			writer := bufio.NewWriter(file)
 			_, err = writer.WriteString(string(msg.Value[:]) + "\n") //将数据先写入缓存
 			writer.Flush()

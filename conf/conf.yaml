@@ -1,10 +1,9 @@
-
 kafka:
-  service_xx_dev:
-    brokers: ["xxx:9092"]
-    topic: serviceName.log_dev
+  fast-elk:
+    brokers: ["106.14.227.31:9092"]
+    topic: abklog_topic
     baseDir: /data/logs/kafka
-    group: serviceName.log_dev
+    group: abklog_topic
     maxSize: 1024 # megabytes
     maxBackups: 10
     maxAge: 28 # days

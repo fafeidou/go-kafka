@@ -1,4 +1,4 @@
-package main
+package setting
 
 import (
 	"fmt"
@@ -6,10 +6,11 @@ import (
 	"io/ioutil"
 )
 
-func main() {
+var App *Conf
+
+func Setup() {
 	var c Conf
-	conf := c.getConf()
-	fmt.Println(conf.Kafka)
+	App = c.getConf()
 }
 
 //profile variables
@@ -28,7 +29,7 @@ type LogInfo struct {
 }
 
 func (c *Conf) getConf() *Conf {
-	yamlFile, err := ioutil.ReadFile("../conf/conf.yaml")
+	yamlFile, err := ioutil.ReadFile("conf/conf.yaml")
 	if err != nil {
 		fmt.Println(err.Error())
 	}
