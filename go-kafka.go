@@ -43,7 +43,7 @@ ConsumerLoop:
 	for {
 		select {
 		case msg := <-partitionConsumer.Messages():
-			file, _ := os.OpenFile("./xx.txt", os.O_CREATE|os.O_APPEND, 0777)
+			file, _ := os.OpenFile("./xx.txt", os.O_RDWR|os.O_CREATE|os.O_APPEND, 755)
 			writer := bufio.NewWriter(file)
 			_, err = writer.WriteString(string(msg.Value[:]) + "\n") //将数据先写入缓存
 			writer.Flush()
