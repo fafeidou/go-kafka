@@ -2,49 +2,39 @@ package main
 
 import (
 	"fmt"
-	"io"
-	"log"
-	"os"
-	"path/filepath"
-	"strconv"
+	"gopkg.in/yaml.v2"
+	"io/ioutil"
 )
 
 func main() {
-	// 获取程序目录
-	strDir, errDir := filepath.Abs(filepath.Dir(os.Args[0]))
-	if errDir != nil {
-		log.Fatal(errDir)
+	var c Conf
+	conf := c.getConf()
+	fmt.Println(conf.Kafka)
+}
+
+//profile variables
+type Conf struct {
+	Kafka map[string]LogInfo `yaml:"kafka"`
+}
+
+type LogInfo struct {
+	Brokers    []string `yaml:"brokers"`
+	Topic      string   `yaml:"topic"`
+	Basedir    string   `yaml:"baseDir"`
+	Group      string   `yaml:"group"`
+	MaxSize    int      `yaml:"maxSize"`
+	MaxBackups int      `yaml:"maxBackups"`
+	MaxAge     int      `yaml:"maxAge"`
+}
+
+func (c *Conf) getConf() *Conf {
+	yamlFile, err := ioutil.ReadFile("../conf/conf.yaml")
+	if err != nil {
+		fmt.Println(err.Error())
 	}
-
-	strFile := strDir + "/testFile.txt"
-	fmt.Println("file to open is ", strFile)
-
-	// 打开文件，如果没有，那么创建，设置为读写操作，文件权限为755
-	file, errOpenFile := os.OpenFile(strFile, os.O_RDWR|os.O_CREATE, 755)
-	if errOpenFile != nil {
-		fmt.Println("open file fail")
-		log.Fatal(errOpenFile)
+	err = yaml.Unmarshal(yamlFile, c)
+	if err != nil {
+		fmt.Println(err.Error())
 	}
-
-	// 保证文件能够被关闭
-	defer file.Close()
-
-	// 写文件
-	for i := 1; i < 10; i++ {
-		strToWrite := "Line " + strconv.Itoa(i) + "\r\n"
-		file.WriteString(strToWrite)
-	}
-
-	szbuf := make([]byte, 1024)
-
-	// 读文件
-	// 由于对file进行的写操作已经将文件指针偏移到文件末尾
-	// 如果此处用Read，会导致失败，因此使用ReadAt，且从文件开头读取
-	nRead, errRead := file.ReadAt(szbuf, 0)
-	if errRead != nil && errRead != io.EOF {
-		fmt.Println("read file fail")
-		log.Fatal(errRead)
-	}
-
-	fmt.Printf("read size:%d, content：%s", nRead, szbuf)
+	return c
 }

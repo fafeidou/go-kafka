@@ -1,0 +1,10 @@
+
+kafka:
+  service_xx_dev:
+    brokers: ["xxx:9092"]
+    topic: serviceName.log_dev
+    baseDir: /data/logs/kafka
+    group: serviceName.log_dev
+    maxSize: 1024 # megabytes
+    maxBackups: 10
+    maxAge: 28 # days

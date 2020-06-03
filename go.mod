@@ -10,4 +10,5 @@ require (
 	github.com/robfig/cron v1.2.0
 	golang.org/x/crypto v0.0.0-20200510223506-06a226fb4e37 // indirect
 	golang.org/x/net v0.0.0-20200528225125-3c3fba18258b // indirect
+	gopkg.in/yaml.v2 v2.2.8
 )
