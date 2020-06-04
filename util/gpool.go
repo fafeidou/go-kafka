@@ -4,22 +4,22 @@ import (
 	"sync"
 )
 
-type pool struct {
+type Pool struct {
 	queue chan int
 	wg    *sync.WaitGroup
 }
 
-func New(size int) *pool {
+func New(size int) *Pool {
 	if size <= 0 {
 		size = 1
 	}
-	return &pool{
+	return &Pool{
 		queue: make(chan int, size),
 		wg:    &sync.WaitGroup{},
 	}
 }
 
-func (p *pool) Add(delta int) {
+func (p *Pool) Add(delta int) {
 	for i := 0; i < delta; i++ {
 		p.queue <- 1
 	}
@@ -29,11 +29,11 @@ func (p *pool) Add(delta int) {
 	p.wg.Add(delta)
 }
 
-func (p *pool) Done() {
+func (p *Pool) Done() {
 	<-p.queue
 	p.wg.Done()
 }
 
-func (p *pool) Wait() {
+func (p *Pool) Wait() {
 	p.wg.Wait()
 }

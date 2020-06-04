@@ -9,7 +9,7 @@ import (
 	"log"
 	"os"
 	"os/signal"
-	"sync"
+	"syscall"
 )
 
 // kafka consumer
@@ -17,17 +17,33 @@ func init() {
 	setting.Setup()
 }
 
-var wg *sync.WaitGroup
+var (
+	pool *gpool.Pool
+)
 
 func main() {
-	pool := gpool.New(len(setting.App.Kafka))
+
+	pool = gpool.New(len(setting.App.Kafka))
 	kafka := setting.App.Kafka
 	for serviceName, value := range kafka {
 		pool.Add(1)
 		go start_log(value.Brokers, value.Topic, serviceName, value.Basedir)
 	}
-	pool.Wait()
+	quit := make(chan os.Signal, 1)
+	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
+	<-quit
+	for {
+		s := <-quit
+		switch s {
+		case syscall.SIGINT | syscall.SIGTERM:
+			pool.Done()
+			log.Println("Shutdown Server ...")
+		default:
+			log.Println("default Shutdown Server ...")
 
+		}
+	}
+	pool.Wait()
 }
 
 func start_log(brokers []string, topic string, serviceName string, baseDir string) {
@@ -40,6 +56,7 @@ func start_log(brokers []string, topic string, serviceName string, baseDir strin
 		if err := consumer.Close(); err != nil {
 			log.Fatalln(err)
 		}
+
 	}()
 
 	partitionConsumer, err := consumer.ConsumePartition(topic, 0, sarama.OffsetNewest)
