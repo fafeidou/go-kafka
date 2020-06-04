@@ -2,7 +2,7 @@ kafka:
   fast-elk:
     brokers: ["106.14.227.31:9092"]
     topic: abklog_topic
-    baseDir: /data/logs/kafka
+    baseDir: C:/Users/qinfuxiang/go/src/go-kafka/
     group: abklog_topic
     maxSize: 1024 # megabytes
     maxBackups: 10

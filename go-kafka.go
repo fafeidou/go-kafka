@@ -24,13 +24,13 @@ func main() {
 	kafka := setting.App.Kafka
 	for serviceName, value := range kafka {
 		pool.Add(1)
-		go start_log(value.Brokers, value.Topic, serviceName)
+		go start_log(value.Brokers, value.Topic, serviceName, value.Basedir)
 	}
 	pool.Wait()
 
 }
 
-func start_log(brokers []string, topic string, serviceName string) {
+func start_log(brokers []string, topic string, serviceName string, baseDir string) {
 	consumer, err := sarama.NewConsumer(brokers, nil)
 	if err != nil {
 		panic(err)
@@ -62,8 +62,8 @@ ConsumerLoop:
 	for {
 		select {
 		case msg := <-partitionConsumer.Messages():
-			os.Mkdir(serviceName, os.ModePerm)
-			file, _ := os.OpenFile(serviceName+"/"+serviceName+".log", os.O_RDWR|os.O_CREATE|os.O_APPEND, 755)
+			os.Mkdir(baseDir+serviceName, os.ModePerm)
+			file, _ := os.OpenFile(baseDir+serviceName+"/"+serviceName+".log", os.O_RDWR|os.O_CREATE|os.O_APPEND, 755)
 			writer := bufio.NewWriter(file)
 			_, err = writer.WriteString(string(msg.Value[:]) + "\n") //将数据先写入缓存
 			writer.Flush()
