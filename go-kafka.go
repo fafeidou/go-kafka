@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/Shopify/sarama"
 	"go-kafka/setting"
+	gpool "go-kafka/util"
 	"log"
 	"os"
 	"os/signal"
@@ -19,13 +20,13 @@ func init() {
 var wg *sync.WaitGroup
 
 func main() {
+	pool := gpool.New(len(setting.App.Kafka))
 	kafka := setting.App.Kafka
-	wg = &sync.WaitGroup{}
 	for serviceName, value := range kafka {
-		wg.Add(1)
+		pool.Add(1)
 		go start_log(value.Brokers, value.Topic, serviceName)
 	}
-	wg.Wait()
+	pool.Wait()
 
 }
 
