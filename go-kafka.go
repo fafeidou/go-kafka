@@ -10,6 +10,7 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
+	"time"
 )
 
 // kafka consumer
@@ -59,7 +60,7 @@ func start_log(brokers []string, topic string, serviceName string, baseDir strin
 
 	}()
 
-	partitionConsumer, err := consumer.ConsumePartition(topic, 0, sarama.OffsetNewest)
+	partitionConsumer, err := consumer.ConsumePartition(topic, 0, sarama.OffsetOldest)
 	if err != nil {
 		panic(err)
 	}
@@ -80,7 +81,8 @@ ConsumerLoop:
 		select {
 		case msg := <-partitionConsumer.Messages():
 			os.Mkdir(baseDir+serviceName, os.ModePerm)
-			file, _ := os.OpenFile(baseDir+serviceName+"/"+serviceName+".log", os.O_RDWR|os.O_CREATE|os.O_APPEND, 755)
+			timeStr := time.Now().Format("2006-01-02")
+			file, _ := os.OpenFile(baseDir+serviceName+"/"+serviceName+timeStr+".log", os.O_RDWR|os.O_CREATE|os.O_APPEND, 755)
 			writer := bufio.NewWriter(file)
 			_, err = writer.WriteString(string(msg.Value[:]) + "\n") //将数据先写入缓存
 			writer.Flush()
