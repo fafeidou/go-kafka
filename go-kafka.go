@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"fmt"
 	"github.com/Shopify/sarama"
+	"go-kafka/job"
 	"go-kafka/setting"
 	gpool "go-kafka/util"
 	"log"
@@ -30,6 +31,7 @@ func main() {
 		pool.Add(1)
 		go start_log(value.Brokers, value.Topic, serviceName, value.Basedir)
 	}
+	job.Job()
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
 	<-quit

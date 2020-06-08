@@ -1,23 +1,35 @@
 package job
 
 import (
-	"fmt"
 	"github.com/robfig/cron"
+	"go-kafka/gzip"
+	"go-kafka/setting"
 	"log"
+	"os"
+	"strings"
 )
 
 type TestJob struct {
 }
 
-func (this TestJob) Run() {
-	fmt.Println("testJob1...")
+type GzipJob struct {
 }
 
-type Test2Job struct {
-}
-
-func (this Test2Job) Run() {
-	fmt.Println("testJob2...")
+func (this GzipJob) Run() {
+	kafka := setting.App.Kafka
+	for serviceName, value := range kafka {
+		//start_log(value.Brokers, value.Topic, serviceName, value.Basedir)
+		filePath := strings.Join([]string{value.Basedir, serviceName}, string(os.PathSeparator))
+		fileMap := gzip.GetAllFile(filePath)
+		for fileName, path := range fileMap {
+			index := strings.LastIndex(fileName, ".gz")
+			if index == -1 {
+				f1, _ := os.Open(path)
+				files := []*os.File{f1}
+				gzip.Compress(files, path+string(os.PathSeparator)+fileName+".gz")
+			}
+		}
+	}
 }
 
 //启动多个任务
@@ -32,10 +44,7 @@ func Job() {
 		log.Println("cron running:", i)
 	})
 
-	//AddJob方法
-	c.AddJob(spec, TestJob{})
-	c.AddJob(spec, Test2Job{})
-
+	c.AddJob(spec, GzipJob{})
 	//启动计划任务
 	c.Start()
 
