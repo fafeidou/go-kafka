@@ -1,16 +1,30 @@
 package gzip
 
 import (
+	"go-kafka/setting"
 	"os"
+	"strings"
 	"testing"
 )
 
+func init() {
+	setting.Setup()
+}
+
 func TestCompress(t *testing.T) {
-	f1, err := os.Open("../xx.txt")
-	if err != nil {
-		t.Fatal(err)
+	kafka := setting.App.Kafka
+	for serviceName, value := range kafka {
+		//start_log(value.Brokers, value.Topic, serviceName, value.Basedir)
+		filePath := strings.Join([]string{value.Basedir, serviceName}, string(os.PathSeparator))
+		fileMap := GetAllFile(filePath)
+		for fileName, path := range fileMap {
+			index := strings.LastIndex(fileName, ".gz")
+			if index == -1 {
+				f1, _ := os.Open(path)
+				files := []*os.File{f1}
+				Compress(files, path+string(os.PathSeparator)+fileName+".gz")
+			}
+		}
 	}
-	files := []*os.File{f1}
-	Compress(files, "../xx.tar")
 
 }

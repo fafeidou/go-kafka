@@ -4,6 +4,7 @@ import (
 	"archive/tar"
 	"compress/gzip"
 	"io"
+	"io/ioutil"
 	"os"
 )
 
@@ -62,4 +63,17 @@ func compress(file *os.File, prefix string, tw *tar.Writer) error {
 		}
 	}
 	return nil
+}
+
+func GetAllFile(pathname string) (fileMap map[string]string) {
+	fileMap = make(map[string]string)
+	rd, _ := ioutil.ReadDir(pathname)
+	for _, fi := range rd {
+		if fi.IsDir() {
+			GetAllFile(pathname + fi.Name())
+		} else {
+			fileMap[fi.Name()] = pathname
+		}
+	}
+	return fileMap
 }
